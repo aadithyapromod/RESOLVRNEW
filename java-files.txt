@@ -5,6 +5,10 @@ C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\PaymentDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\RentalDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\ReturnDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\VehicleDAO.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\dao\MaintenanceDAO.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\model\MaintenanceRecord.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\service\MaintenanceService.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\ui\MaintenancePanel.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\model\Customer.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\model\Payment.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\model\Rental.java
@@ -18,6 +22,7 @@ C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\service\VehicleServic
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\CustomerDAOTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\DAOTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\FullCRUDTest.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\MaintenanceTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\ModelTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\ServiceTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\VehicleDAOTest.java

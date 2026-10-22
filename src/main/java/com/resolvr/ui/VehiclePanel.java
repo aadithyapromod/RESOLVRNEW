@@ -4,6 +4,7 @@ import com.resolvr.model.Vehicle;
 import com.resolvr.service.VehicleService;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
@@ -74,6 +75,28 @@ public class VehiclePanel extends JPanel {
         table.setRowHeight(25);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+        // Highlight maintenance and unavailable status
+        table.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tbl, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(tbl, value, isSelected, hasFocus, row, column);
+                if (value != null) {
+                    String str = value.toString();
+                    if ("MAINTENANCE".equalsIgnoreCase(str)) {
+                        c.setForeground(new Color(180, 40, 40));
+                        setText("MAINTENANCE (Unavailable)");
+                    } else if ("AVAILABLE".equalsIgnoreCase(str)) {
+                        c.setForeground(new Color(30, 130, 60));
+                    } else if ("RENTED".equalsIgnoreCase(str)) {
+                        c.setForeground(new Color(0, 102, 204));
+                    }
+                }
+                return c;
+            }
+        });
+
         JPanel content = new JPanel(new BorderLayout(8, 8));
         content.add(top, BorderLayout.NORTH);
         content.add(new JScrollPane(table), BorderLayout.CENTER);
@@ -121,7 +144,7 @@ public class VehiclePanel extends JPanel {
         }
     }
 
-    private void loadVehicles() {
+    public void loadVehicles() {
         try {
             display(service.getAllVehicles());
         } catch (SQLException ex) {

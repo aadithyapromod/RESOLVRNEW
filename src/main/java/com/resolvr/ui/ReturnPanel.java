@@ -163,6 +163,18 @@ public class ReturnPanel extends JPanel {
             VehicleReturn vr = new VehicleReturn(rId, actualDate, damage, refund, notes);
 
             if (returnService.processReturn(vr)) {
+                boolean damaged = damage > 0 || (notes != null && (
+                        notes.toLowerCase().contains("damage") ||
+                        notes.toLowerCase().contains("crash") ||
+                        notes.toLowerCase().contains("repair") ||
+                        notes.toLowerCase().contains("accident") ||
+                        notes.toLowerCase().contains("dent") ||
+                        notes.toLowerCase().contains("broken")));
+
+                String statusUpdateMsg = damaged
+                        ? "Vehicle #" + rental.getVehicleId() + " marked as MAINTENANCE (Unavailable for rentals) due to reported condition/damage.\nInitial repair record automatically logged in Maintenance module."
+                        : "Vehicle #" + rental.getVehicleId() + " is now marked AVAILABLE for new rentals.";
+
                 JOptionPane.showMessageDialog(
                         this,
                         "Vehicle Return Processed Successfully!\n\n" +
@@ -171,7 +183,7 @@ public class ReturnPanel extends JPanel {
                         "Damage Charge: ₹" + String.format("%.2f", damage) + "\n" +
                         "Refund Amount: ₹" + String.format("%.2f", refund) + "\n\n" +
                         "Rental status set to COMPLETED.\n" +
-                        "Vehicle is now marked AVAILABLE for new rentals.",
+                        statusUpdateMsg,
                         "Return Completed",
                         JOptionPane.INFORMATION_MESSAGE
                 );

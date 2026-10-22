@@ -3,6 +3,8 @@ package com.resolvr.service;
 import com.resolvr.dao.RentalDAO;
 import com.resolvr.dao.ReturnDAO;
 import com.resolvr.dao.VehicleDAO;
+import com.resolvr.extension.dao.MaintenanceDAO;
+import com.resolvr.extension.model.MaintenanceRecord;
 import com.resolvr.model.Rental;
 import com.resolvr.model.VehicleReturn;
 
@@ -77,7 +79,7 @@ public class ReturnService {
         return returnDAO.addReturn(vehicleReturn);
     }
 
-    // Complete return workflow: adds return record, completes rental, frees vehicle
+    // Complete return workflow: adds return record, completes rental, updates vehicle status according to condition
     public boolean processReturn(VehicleReturn vehicleReturn) throws SQLException {
         if (vehicleReturn == null) {
             throw new IllegalArgumentException("Return record cannot be null.");
@@ -91,9 +93,59 @@ public class ReturnService {
         boolean success = addReturn(vehicleReturn);
         if (success) {
             rentalDAO.updateRentalStatus(rental.getRentalId(), "COMPLETED");
-            vehicleDAO.updateStatus(rental.getVehicleId(), "AVAILABLE");
+
+            // Evaluate vehicle condition and damage
+            boolean hasDamage = vehicleReturn.getDamageCharge() > 0;
+            String notes = vehicleReturn.getConditionNotes();
+            boolean damageInNotes = isDamagedCondition(notes);
+
+            if (hasDamage || damageInNotes) {
+                // Vehicle condition requires servicing/repairs -> mark as MAINTENANCE (unavailable)
+                vehicleDAO.updateStatus(rental.getVehicleId(), "MAINTENANCE");
+
+                // Auto-create initial maintenance record in the extension module
+                try {
+                    MaintenanceDAO maintenanceDAO = new MaintenanceDAO();
+                    String mType = hasDamage ? "Accident / Crash Repair" : "Servicing & Repair Inspection";
+                    String desc = "Auto-flagged from return #" + vehicleReturn.getReturnId() +
+                            (notes != null && !notes.isEmpty() ? ": " + notes : " (Damage reported)");
+                    MaintenanceRecord mRecord = new MaintenanceRecord(
+                            rental.getVehicleId(),
+                            mType,
+                            desc,
+                            vehicleReturn.getDamageCharge(),
+                            vehicleReturn.getActualReturnDate(),
+                            null,
+                            "UNDER_MAINTENANCE",
+                            "Workshop Inspection Pending",
+                            notes != null ? notes : ""
+                    );
+                    maintenanceDAO.addMaintenance(mRecord);
+                } catch (Exception ex) {
+                    System.err.println("Could not auto-create maintenance record: " + ex.getMessage());
+                }
+            } else {
+                // Returned in good condition -> restore to AVAILABLE
+                vehicleDAO.updateStatus(rental.getVehicleId(), "AVAILABLE");
+            }
         }
         return success;
+    }
+
+    private boolean isDamagedCondition(String notes) {
+        if (notes == null || notes.trim().isEmpty()) return false;
+        String lower = notes.toLowerCase();
+        return lower.contains("damage")
+                || lower.contains("repair")
+                || lower.contains("crash")
+                || lower.contains("accident")
+                || lower.contains("broken")
+                || lower.contains("issue")
+                || lower.contains("dent")
+                || lower.contains("scratch")
+                || lower.contains("fault")
+                || lower.contains("puncture")
+                || lower.contains("leak");
     }
 
     // Retrieve all return records

@@ -57,3 +57,20 @@ CREATE TABLE IF NOT EXISTS `returns` (
     FOREIGN KEY (rental_id)
         REFERENCES rentals(rental_id)
 );
+
+CREATE TABLE IF NOT EXISTS vehicle_maintenance (
+    maintenance_id INT AUTO_INCREMENT PRIMARY KEY,
+    vehicle_id INT NOT NULL,
+    maintenance_type VARCHAR(50) NOT NULL,
+    description TEXT NOT NULL,
+    cost DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    status VARCHAR(30) NOT NULL DEFAULT 'UNDER_MAINTENANCE',
+    service_center VARCHAR(150),
+    condition_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (vehicle_id)
+        REFERENCES vehicles(vehicle_id)
+);

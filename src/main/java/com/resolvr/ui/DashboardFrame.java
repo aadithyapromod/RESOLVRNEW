@@ -1,5 +1,7 @@
 package com.resolvr.ui;
 
+import com.resolvr.extension.ui.MaintenancePanel;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -39,11 +41,33 @@ public class DashboardFrame extends JFrame {
         header.add(logout, BorderLayout.EAST);
 
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Vehicles", new VehiclePanel());
-        tabs.addTab("Customers", new CustomerPanel());
-        tabs.addTab("Rentals", new RentalPanel());
-        tabs.addTab("Payments", new PaymentPanel());
-        tabs.addTab("Returns", new ReturnPanel());
+        VehiclePanel vehiclePanel = new VehiclePanel();
+        CustomerPanel customerPanel = new CustomerPanel();
+        RentalPanel rentalPanel = new RentalPanel();
+        PaymentPanel paymentPanel = new PaymentPanel();
+        ReturnPanel returnPanel = new ReturnPanel();
+        MaintenancePanel maintenancePanel = new MaintenancePanel();
+
+        tabs.addTab("Vehicles", vehiclePanel);
+        tabs.addTab("Customers", customerPanel);
+        tabs.addTab("Rentals", rentalPanel);
+        tabs.addTab("Payments", paymentPanel);
+        tabs.addTab("Returns", returnPanel);
+        tabs.addTab("Maintenance", maintenancePanel);
+
+        // Auto refresh relevant tab contents on switch
+        tabs.addChangeListener(e -> {
+            int selectedIndex = tabs.getSelectedIndex();
+            if (selectedIndex == 0) {
+                vehiclePanel.loadVehicles();
+            } else if (selectedIndex == 4) {
+                returnPanel.loadReturns();
+            } else if (selectedIndex == 5) {
+                maintenancePanel.loadVehiclesDropdown();
+                maintenancePanel.loadRecords();
+                maintenancePanel.updateUnavailableBanner();
+            }
+        });
 
         setLayout(new BorderLayout());
         add(header, BorderLayout.NORTH);

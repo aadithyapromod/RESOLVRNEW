@@ -71,10 +71,15 @@ public class RentalService {
             );
         }
 
-        if (!"AVAILABLE".equalsIgnoreCase(
-                selectedVehicle.getStatus())) {
+        if (!"AVAILABLE".equalsIgnoreCase(selectedVehicle.getStatus())) {
+            if ("MAINTENANCE".equalsIgnoreCase(selectedVehicle.getStatus())) {
+                throw new IllegalArgumentException(
+                        "Vehicle #" + selectedVehicle.getVehicleId() + " (" + selectedVehicle.getModel()
+                        + ") is currently unavailable due to maintenance / servicing."
+                );
+            }
             throw new IllegalArgumentException(
-                    "Vehicle is not currently available."
+                    "Vehicle is not currently available (" + selectedVehicle.getStatus() + ")."
             );
         }
 
