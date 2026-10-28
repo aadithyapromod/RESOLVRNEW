@@ -1,4 +1,3 @@
-
 package com.resolvr.ui;
 
 import com.resolvr.model.Rental;
@@ -142,12 +141,21 @@ public class RentalPanel extends JPanel {
         String newStatus = (String) status.getSelectedItem();
 
         try {
-            if (service.updateRentalStatus(id, newStatus)) {
-                message("Rental status updated.");
-                loadRentals();
+            if ("CANCELLED".equalsIgnoreCase(newStatus)) {
+                Rental promoted = service.cancelRentalWithQueuePromotion(id);
+                if (promoted != null) {
+                    message("Rental #" + id + " cancelled.\n\n" +
+                            "Vehicle automatically allocated to the next customer in the waitlist queue (New Rental #" +
+                            promoted.getRentalId() + ")!");
+                } else {
+                    message("Rental #" + id + " cancelled. Vehicle is now AVAILABLE.");
+                }
+            } else if (service.updateRentalStatus(id, newStatus)) {
+                message("Rental status updated to " + newStatus + ".");
             } else {
                 message("Rental status was not updated.");
             }
+            loadRentals();
         } catch (SQLException | IllegalArgumentException ex) {
             error(ex);
         }

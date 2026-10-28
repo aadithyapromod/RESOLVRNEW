@@ -1,6 +1,7 @@
 package com.resolvr.ui;
 
 import com.resolvr.extension.ui.MaintenancePanel;
+import com.resolvr.extension.ui.RentalQueuePanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,6 +48,7 @@ public class DashboardFrame extends JFrame {
         PaymentPanel paymentPanel = new PaymentPanel();
         ReturnPanel returnPanel = new ReturnPanel();
         MaintenancePanel maintenancePanel = new MaintenancePanel();
+        RentalQueuePanel rentalQueuePanel = new RentalQueuePanel();
 
         tabs.addTab("Vehicles", vehiclePanel);
         tabs.addTab("Customers", customerPanel);
@@ -54,18 +56,25 @@ public class DashboardFrame extends JFrame {
         tabs.addTab("Payments", paymentPanel);
         tabs.addTab("Returns", returnPanel);
         tabs.addTab("Maintenance", maintenancePanel);
+        tabs.addTab("Rental Queue", rentalQueuePanel);
 
         // Auto refresh relevant tab contents on switch
         tabs.addChangeListener(e -> {
             int selectedIndex = tabs.getSelectedIndex();
             if (selectedIndex == 0) {
                 vehiclePanel.loadVehicles();
+            } else if (selectedIndex == 2) {
+                // rentals tab
             } else if (selectedIndex == 4) {
                 returnPanel.loadReturns();
             } else if (selectedIndex == 5) {
                 maintenancePanel.loadVehiclesDropdown();
                 maintenancePanel.loadRecords();
                 maintenancePanel.updateUnavailableBanner();
+            } else if (selectedIndex == 6) {
+                rentalQueuePanel.loadDropdowns();
+                rentalQueuePanel.loadRecords();
+                rentalQueuePanel.updateQueueBanner();
             }
         });
 

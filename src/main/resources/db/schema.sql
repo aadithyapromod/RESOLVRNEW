@@ -74,3 +74,24 @@ CREATE TABLE IF NOT EXISTS vehicle_maintenance (
     FOREIGN KEY (vehicle_id)
         REFERENCES vehicles(vehicle_id)
 );
+
+
+CREATE TABLE IF NOT EXISTS rental_queue (
+    queue_id INT AUTO_INCREMENT PRIMARY KEY,
+    vehicle_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    duration_hours INT NOT NULL DEFAULT 4,
+    estimated_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    queue_position INT NOT NULL DEFAULT 1,
+    status VARCHAR(30) NOT NULL DEFAULT 'WAITING',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (vehicle_id)
+        REFERENCES vehicles(vehicle_id),
+
+    FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+);

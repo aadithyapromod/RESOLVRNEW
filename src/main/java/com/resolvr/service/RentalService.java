@@ -3,6 +3,7 @@ package com.resolvr.service;
 import com.resolvr.dao.CustomerDAO;
 import com.resolvr.dao.RentalDAO;
 import com.resolvr.dao.VehicleDAO;
+import com.resolvr.extension.service.RentalQueueService;
 import com.resolvr.model.Customer;
 import com.resolvr.model.Rental;
 import com.resolvr.model.Vehicle;
@@ -186,14 +187,53 @@ public class RentalService {
                 rentalId, status.toUpperCase()
         );
 
-        if (success && (status.equalsIgnoreCase("CANCELLED")
-                || status.equalsIgnoreCase("COMPLETED"))) {
+        if (success) {
             Rental r = rentalDAO.getRentalById(rentalId);
             if (r != null) {
-                vehicleDAO.updateStatus(r.getVehicleId(), "AVAILABLE");
+                if (status.equalsIgnoreCase("CANCELLED")) {
+                    // Check if there is someone in the priority queue waiting for this vehicle.
+                    // If yes: promote Person 2 so Person 2 takes the vehicle!
+                    // If no: vehicle status becomes AVAILABLE.
+                    try {
+                        RentalQueueService queueService = new RentalQueueService();
+                        Rental promoted = queueService.handleRentalCancellation(r.getVehicleId());
+                        if (promoted == null) {
+                            vehicleDAO.updateStatus(r.getVehicleId(), "AVAILABLE");
+                        }
+                    } catch (Exception ex) {
+                        System.err.println("Note: could not process queue promotion on cancellation: " + ex.getMessage());
+                        vehicleDAO.updateStatus(r.getVehicleId(), "AVAILABLE");
+                    }
+                } else if (status.equalsIgnoreCase("COMPLETED")) {
+                    vehicleDAO.updateStatus(r.getVehicleId(), "AVAILABLE");
+                }
             }
         }
 
         return success;
+    }
+
+    // Cancel rental and return newly promoted rental if a customer was waiting in queue
+    public Rental cancelRentalWithQueuePromotion(int rentalId) throws SQLException {
+        if (rentalId <= 0) {
+            throw new IllegalArgumentException("Invalid rental ID.");
+        }
+
+        Rental r = rentalDAO.getRentalById(rentalId);
+        if (r == null) {
+            throw new IllegalArgumentException("Rental #" + rentalId + " does not exist.");
+        }
+
+        boolean success = rentalDAO.updateRentalStatus(rentalId, "CANCELLED");
+        if (!success) {
+            return null;
+        }
+
+        RentalQueueService queueService = new RentalQueueService();
+        Rental promoted = queueService.handleRentalCancellation(r.getVehicleId());
+        if (promoted == null) {
+            vehicleDAO.updateStatus(r.getVehicleId(), "AVAILABLE");
+        }
+        return promoted;
     }
 }

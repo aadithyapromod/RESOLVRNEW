@@ -6,9 +6,13 @@ C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\RentalDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\ReturnDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\dao\VehicleDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\dao\MaintenanceDAO.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\dao\RentalQueueDAO.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\model\MaintenanceRecord.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\model\RentalQueueEntry.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\service\MaintenanceService.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\service\RentalQueueService.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\ui\MaintenancePanel.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\extension\ui\RentalQueuePanel.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\model\Customer.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\model\Payment.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\model\Rental.java
@@ -24,6 +28,7 @@ C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\DAOTest.ja
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\FullCRUDTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\MaintenanceTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\ModelTest.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\RentalQueueTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\ServiceTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\TEST FILES\VehicleDAOTest.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerBookingsPanel.java
@@ -31,6 +36,7 @@ C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerDashboardF
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerLoginFrame.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerPanel.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerPaymentPanel.java
+C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerQueuePanel.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerRentVehiclePanel.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\CustomerReturnPanel.java
 C:\Users\aadit\Documents\RESOLVR\src\main\java\com\resolvr\ui\DashboardFrame.java

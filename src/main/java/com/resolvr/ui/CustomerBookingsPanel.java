@@ -145,12 +145,21 @@ public class CustomerBookingsPanel extends JPanel {
         }
 
         try {
-            if (rentalService.updateRentalStatus(rentalId, "CANCELLED")) {
-                message("Booking #" + rentalId + " has been cancelled.");
-                loadBookings();
+            Rental promoted = rentalService.cancelRentalWithQueuePromotion(rentalId);
+            if (promoted != null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Booking #" + rentalId + " has been cancelled.\n\n" +
+                        "Priority Waitlist Update:\n" +
+                        "The vehicle has been automatically allocated to the next customer waiting in the queue (Rental #" +
+                        promoted.getRentalId() + ")!",
+                        "Booking Cancelled & Reallocated",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
             } else {
-                message("Failed to cancel booking.");
+                message("Booking #" + rentalId + " has been cancelled.");
             }
+            loadBookings();
         } catch (SQLException ex) {
             error(ex);
         }

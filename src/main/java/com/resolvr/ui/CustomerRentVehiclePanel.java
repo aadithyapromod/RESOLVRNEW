@@ -1,5 +1,7 @@
 package com.resolvr.ui;
 
+import com.resolvr.extension.model.RentalQueueEntry;
+import com.resolvr.extension.service.RentalQueueService;
 import com.resolvr.model.Customer;
 import com.resolvr.model.Payment;
 import com.resolvr.model.Rental;
@@ -9,6 +11,7 @@ import com.resolvr.service.RentalService;
 import com.resolvr.service.VehicleService;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Date;
@@ -22,15 +25,20 @@ public class CustomerRentVehiclePanel extends JPanel {
     private final VehicleService vehicleService = new VehicleService();
     private final RentalService rentalService = new RentalService();
     private final PaymentService paymentService = new PaymentService();
+    private final RentalQueueService queueService = new RentalQueueService();
 
     private final JComboBox<String> categoryFilter = new JComboBox<>(
             new String[]{"ALL", "Car", "SUV", "Van", "Bike", "Other"}
     );
 
+    private final JComboBox<String> availabilityFilter = new JComboBox<>(
+            new String[]{"Available Only", "All Vehicles (Available & Rented)"}
+    );
+
     private final DefaultTableModel vehicleTableModel =
             new DefaultTableModel(new String[]{
                     "Vehicle ID", "Registration", "Model",
-                    "Category", "Hourly Price (₹/hr)", "Status"
+                    "Category", "Hourly Price (₹/hr)", "Status", "Waitlist Queue"
             }, 0) {
                 @Override
                 public boolean isCellEditable(int row, int col) {
@@ -43,10 +51,11 @@ public class CustomerRentVehiclePanel extends JPanel {
     // Booking form controls
     private final JLabel selectedVehicleLabel = new JLabel("None selected (click a vehicle above)");
     private final JTextField startDateField = new JTextField(LocalDate.now().toString());
-    private final JTextField endDateField = new JTextField(LocalDate.now().toString());
+    private final JTextField endDateField = new JTextField(LocalDate.now().plusDays(1).toString());
     private final JSpinner hoursSpinner = new JSpinner(new SpinnerNumberModel(4, 1, 720, 1));
     private final JLabel estimatedTotalLabel = new JLabel("₹0.00");
     private final JComboBox<String> paymentMethodBox = new JComboBox<>(new String[]{"UPI", "CARD", "CASH"});
+    private final JButton bookButton = new JButton("Confirm & Book Vehicle");
 
     private Vehicle selectedVehicle = null;
 
@@ -60,7 +69,7 @@ public class CustomerRentVehiclePanel extends JPanel {
         JPanel headerPanel = new JPanel(new BorderLayout());
         JLabel title = new JLabel("Browse & Rent Vehicles");
         title.setFont(new Font("SansSerif", Font.BOLD, 22));
-        JLabel hint = new JLabel("Select an available vehicle inputted by staff, choose your rental hours, and book instantly.");
+        JLabel hint = new JLabel("Select a vehicle to rent immediately, or join the priority waiting list if the vehicle is currently rented.");
         hint.setForeground(Color.GRAY);
         headerPanel.add(title, BorderLayout.NORTH);
         headerPanel.add(hint, BorderLayout.SOUTH);
@@ -68,11 +77,13 @@ public class CustomerRentVehiclePanel extends JPanel {
 
         // 2. Center: Vehicle Browser Table with Filter
         JPanel tableContainer = new JPanel(new BorderLayout(8, 8));
-        tableContainer.setBorder(BorderFactory.createTitledBorder("Available Vehicles"));
+        tableContainer.setBorder(BorderFactory.createTitledBorder("Available & Rented Vehicles Fleet"));
 
         JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        filterBar.add(new JLabel("Filter by Category:"));
+        filterBar.add(new JLabel("Category:"));
         filterBar.add(categoryFilter);
+        filterBar.add(new JLabel("Availability:"));
+        filterBar.add(availabilityFilter);
         JButton filterBtn = new JButton("Filter");
         JButton refreshBtn = new JButton("Refresh");
         filterBar.add(filterBtn);
@@ -81,12 +92,37 @@ public class CustomerRentVehiclePanel extends JPanel {
 
         vehicleTable.setRowHeight(25);
         vehicleTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // Status column renderer
+        vehicleTable.getColumnModel().getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable tbl, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                Component c = super.getTableCellRendererComponent(tbl, value, isSelected, hasFocus, row, column);
+                if (value != null) {
+                    String str = value.toString();
+                    if ("AVAILABLE".equalsIgnoreCase(str)) {
+                        c.setForeground(new Color(39, 174, 96));
+                        setText("AVAILABLE (Ready to rent)");
+                    } else if ("RENTED".equalsIgnoreCase(str)) {
+                        c.setForeground(new Color(211, 84, 0));
+                        setText("RENTED (Waitlist open)");
+                    } else if ("MAINTENANCE".equalsIgnoreCase(str)) {
+                        c.setForeground(new Color(192, 57, 43));
+                        setText("MAINTENANCE");
+                    }
+                }
+                return c;
+            }
+        });
+
         tableContainer.add(new JScrollPane(vehicleTable), BorderLayout.CENTER);
 
         // 3. Bottom: Booking Card
         JPanel bookingCard = new JPanel(new BorderLayout(10, 10));
         bookingCard.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Book Selected Vehicle"),
+                BorderFactory.createTitledBorder("Book Selected Vehicle or Join Queue"),
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
 
@@ -119,7 +155,6 @@ public class CustomerRentVehiclePanel extends JPanel {
         estimatedTotalLabel.setForeground(new Color(39, 85, 145));
         formGrid.add(estimatedTotalLabel);
 
-        JButton bookButton = new JButton("Confirm & Book Vehicle");
         bookButton.setFont(new Font("SansSerif", Font.BOLD, 14));
         bookButton.setBackground(new Color(39, 85, 145));
         bookButton.setForeground(Color.WHITE);
@@ -134,7 +169,7 @@ public class CustomerRentVehiclePanel extends JPanel {
         bookingCard.add(formGrid, BorderLayout.CENTER);
         bookingCard.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Split view or combined view
+        // Split view
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tableContainer, bookingCard);
         splitPane.setResizeWeight(0.55);
         splitPane.setDividerSize(6);
@@ -143,6 +178,7 @@ public class CustomerRentVehiclePanel extends JPanel {
         // Listeners
         filterBtn.addActionListener(e -> filterVehicles());
         refreshBtn.addActionListener(e -> loadAvailableVehicles());
+        availabilityFilter.addActionListener(e -> filterVehicles());
         recalculateButton.addActionListener(e -> updateEstimate());
         hoursSpinner.addChangeListener(e -> updateEstimate());
 
@@ -159,6 +195,15 @@ public class CustomerRentVehiclePanel extends JPanel {
                                 String.format("%.2f", selectedVehicle.getPricePerHour()) + "/hr"
                         );
                         updateEstimate();
+
+                        // Adjust button mode based on vehicle status
+                        if ("RENTED".equalsIgnoreCase(selectedVehicle.getStatus())) {
+                            bookButton.setText("Join Waiting List / Queue (Vehicle Rented)");
+                            bookButton.setBackground(new Color(211, 84, 0));
+                        } else {
+                            bookButton.setText("Confirm & Book Vehicle");
+                            bookButton.setBackground(new Color(39, 85, 145));
+                        }
                     }
                 } catch (SQLException ex) {
                     error(ex);
@@ -166,7 +211,7 @@ public class CustomerRentVehiclePanel extends JPanel {
             }
         });
 
-        bookButton.addActionListener(e -> bookRental());
+        bookButton.addActionListener(e -> handleBookingOrQueue());
 
         loadAvailableVehicles();
     }
@@ -189,34 +234,33 @@ public class CustomerRentVehiclePanel extends JPanel {
     }
 
     public void loadAvailableVehicles() {
-        try {
-            List<Vehicle> available = vehicleService.getAvailableVehicles();
-            display(available);
-            selectedVehicle = null;
-            selectedVehicleLabel.setText("None selected (click a vehicle above)");
-            estimatedTotalLabel.setText("₹0.00");
-        } catch (SQLException ex) {
-            error(ex);
-        }
+        filterVehicles();
     }
 
     private void filterVehicles() {
         String cat = (String) categoryFilter.getSelectedItem();
-        if ("ALL".equals(cat)) {
-            loadAvailableVehicles();
-            return;
-        }
+        String avail = (String) availabilityFilter.getSelectedItem();
 
         try {
-            List<Vehicle> vehicles = vehicleService.searchByCategory(cat);
-            // Filter to only show available ones
-            List<Vehicle> available = vehicles.stream()
-                    .filter(v -> "AVAILABLE".equalsIgnoreCase(v.getStatus()))
-                    .toList();
-            display(available);
+            List<Vehicle> list;
+            if ("ALL".equals(cat)) {
+                list = vehicleService.getAllVehicles();
+            } else {
+                list = vehicleService.searchByCategory(cat);
+            }
+
+            if ("Available Only".equals(avail)) {
+                list = list.stream()
+                        .filter(v -> "AVAILABLE".equalsIgnoreCase(v.getStatus()))
+                        .toList();
+            }
+
+            display(list);
             selectedVehicle = null;
             selectedVehicleLabel.setText("None selected (click a vehicle above)");
             estimatedTotalLabel.setText("₹0.00");
+            bookButton.setText("Confirm & Book Vehicle");
+            bookButton.setBackground(new Color(39, 85, 145));
         } catch (SQLException ex) {
             error(ex);
         }
@@ -225,23 +269,119 @@ public class CustomerRentVehiclePanel extends JPanel {
     private void display(List<Vehicle> vehicles) {
         vehicleTableModel.setRowCount(0);
         for (Vehicle v : vehicles) {
+            String queueInfo = "0 waiting";
+            try {
+                int qCount = queueService.getQueueForVehicle(v.getVehicleId()).size();
+                queueInfo = qCount > 0 ? (qCount + " waiting in queue") : "No queue";
+            } catch (Exception ignored) {}
+
             vehicleTableModel.addRow(new Object[]{
                     v.getVehicleId(),
                     v.getRegistrationNo(),
                     v.getModel(),
                     v.getCategory(),
                     String.format("%.2f", v.getPricePerHour()),
-                    v.getStatus()
+                    v.getStatus(),
+                    queueInfo
             });
         }
     }
 
-    private void bookRental() {
+    private void handleBookingOrQueue() {
         if (selectedVehicle == null) {
             message("Please select a vehicle from the table first.");
             return;
         }
 
+        if ("MAINTENANCE".equalsIgnoreCase(selectedVehicle.getStatus())) {
+            message("Vehicle #" + selectedVehicle.getVehicleId() + " is currently in maintenance / servicing and cannot be booked or queued.");
+            return;
+        }
+
+        if ("RENTED".equalsIgnoreCase(selectedVehicle.getStatus())) {
+            joinWaitlist();
+        } else {
+            bookRental();
+        }
+    }
+
+    private void joinWaitlist() {
+        try {
+            Date start = Date.valueOf(startDateField.getText().trim());
+            Date end = Date.valueOf(endDateField.getText().trim());
+
+            if (end.before(start)) {
+                message("End date cannot be earlier than start date.");
+                return;
+            }
+
+            int hours = ((Number) hoursSpinner.getValue()).intValue();
+            if (hours <= 0) {
+                message("Duration must be at least 1 hour.");
+                return;
+            }
+
+            double totalAmount = hours * selectedVehicle.getPricePerHour();
+            int currentQueueSize = queueService.getQueueForVehicle(selectedVehicle.getVehicleId()).size();
+            int nextPosition = currentQueueSize + 1;
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Join Waiting List / Priority Queue:\n\n" +
+                    "Vehicle: " + selectedVehicle.getModel() + " (" + selectedVehicle.getRegistrationNo() + ")\n" +
+                    "Current Status: RENTED by another customer\n" +
+                    "Current Queue: " + currentQueueSize + " person(s) waiting ahead\n" +
+                    "Your Position: #" + nextPosition + " (First-In-First-Out Priority)\n\n" +
+                    "If the current renter cancels their booking, priority will automatically go to you,\n" +
+                    "and the vehicle will be immediately booked under your account!\n\n" +
+                    "Requested Duration: " + hours + " hour(s)\n" +
+                    "Estimated Cost: ₹" + String.format("%.2f", totalAmount) + "\n" +
+                    "Dates: " + start + " to " + end + "\n\n" +
+                    "Do you want to join the waiting list?",
+                    "Join Vehicle Waiting List",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            RentalQueueEntry entry = new RentalQueueEntry(
+                    selectedVehicle.getVehicleId(),
+                    customer.getCustomerId(),
+                    start,
+                    end,
+                    hours,
+                    totalAmount,
+                    "Waitlist request via customer portal"
+            );
+
+            if (queueService.joinQueue(entry)) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Successfully added to Waiting List!\n\n" +
+                        "Vehicle: " + selectedVehicle.getModel() + "\n" +
+                        "Your Priority Position: #" + entry.getQueuePosition() + "\n" +
+                        "Status: WAITING\n\n" +
+                        "If the current customer cancels, you will automatically take the vehicle.\n" +
+                        "Track your status anytime in the 'My Queue / Waitlist' tab.",
+                        "Waitlist Confirmed",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                filterVehicles();
+            } else {
+                message("Could not join waiting list. Please try again.");
+            }
+
+        } catch (IllegalArgumentException ex) {
+            message("Error: " + ex.getMessage());
+        } catch (SQLException ex) {
+            error(ex);
+        }
+    }
+
+    private void bookRental() {
         try {
             Date start = Date.valueOf(startDateField.getText().trim());
             Date end = Date.valueOf(endDateField.getText().trim());
@@ -308,7 +448,7 @@ public class CustomerRentVehiclePanel extends JPanel {
                         JOptionPane.INFORMATION_MESSAGE
                 );
 
-                loadAvailableVehicles();
+                filterVehicles();
             } else {
                 message("Could not create rental booking. Please try again.");
             }

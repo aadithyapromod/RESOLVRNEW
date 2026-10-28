@@ -55,11 +55,13 @@ public class CustomerDashboardFrame extends JFrame {
         CustomerBookingsPanel bookingsPanel = new CustomerBookingsPanel(customer);
         CustomerPaymentPanel paymentPanel = new CustomerPaymentPanel(customer);
         CustomerReturnPanel returnPanel = new CustomerReturnPanel(customer);
+        CustomerQueuePanel queuePanel = new CustomerQueuePanel(customer);
 
         tabs.addTab("Browse & Rent Vehicles", rentPanel);
         tabs.addTab("My Bookings", bookingsPanel);
         tabs.addTab("My Payments", paymentPanel);
         tabs.addTab("Returns", returnPanel);
+        tabs.addTab("My Queue / Waitlist", queuePanel);
 
         // When switching tabs, automatically refresh
         tabs.addChangeListener(e -> {
@@ -73,6 +75,8 @@ public class CustomerDashboardFrame extends JFrame {
             } else if (selectedIndex == 3) {
                 returnPanel.loadActiveRentals();
                 returnPanel.loadReturnHistory();
+            } else if (selectedIndex == 4) {
+                queuePanel.loadQueue();
             }
         });
 
